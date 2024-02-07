@@ -36,3 +36,4 @@ def get_image(search):
         img_url = data['items'][0]['originalImageUrl']
         
     return img_url
+
