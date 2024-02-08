@@ -2,7 +2,7 @@ from flask import Blueprint, flash, redirect, render_template, request
 
 
 # internal imports
-from rangers_shop.models import Product, db 
+from rangers_shop.models import Product, Customer, Order, db 
 from rangers_shop.forms import ProductForm
 
 
@@ -18,9 +18,17 @@ def shop():
     
     # grab all of the products in our database via query
     allprods = Product.query.all() # same as SELECT * FROM products, list of objects from database 
+    allcustomers = Customer.query.all()
+    allorders = Order.query.all()
+    
+    shop_stats = {
+        'products': len(allprods), # allprods is a list of objects, so counting how many objects
+        'customers': len(allcustomers),
+        'sales': sum([order.order_total for order in allorders]) #looping through allorders list, order is each object and im grabbing the order_total & summing them all up
+    }
     
     
-    return render_template('shop.html', shop=allprods) # looking inside site_templates folder for a file called shop.html to render
+    return render_template('shop.html', shop=allprods, stats=shop_stats) # looking inside site_templates folder for a file called shop.html to render
 
 
 

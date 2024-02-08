@@ -78,7 +78,7 @@ class Product(db.Model):
     price = db.Column(db.Numeric(precision=10, scale=2), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
-    # eventually we will connect this table to our Order table 
+    prodord = db.relationship('ProdOrder', backref = 'product', lazy=True) # establishing relationship between ProdOrder & Product table
     
     # INSERT INTO
     def __init__(self, name, price, quantity, image="", description=""):
@@ -117,6 +117,109 @@ class Product(db.Model):
     
     def __repr__(self):
         return f"<Product: {self.name}>"
+        
+# only need this for purpose of tracking what customers arae tied to which orders   
+class Customer(db.Model):
+    # CREATE TABLE
+    cust_id = db.Column(db.String, primary_key=True)
+    date_created = db.Column(db.DateTime, default = datetime.utcnow())
+    prodord = db.relationship('ProdOrder', backref = 'customer', lazy=True)
+    
+    def __init__(self, cust_id):
+        self.cust_id = cust_id # this is coming from the frontend so should be the same
+        
+    def __repr__(self):
+        return f"<Customer: {self.cust_id}>"
+    
+    
+    
+class Order(db.Model):
+    #CREATE TABLE
+    order_id = db.Column(db.String, primary_key=True)
+    order_total = db.Column(db.Numeric(precision=10, scale=2), nullable=False)
+    date_created = db.Column(db.DateTime, default = datetime.utcnow() )
+    prodord = db.relationship('ProdOrder', backref = 'order', lazy=True)
+    
+    
+    def __init__(self):
+        self.order_id = self.set_id()
+        self.order_total = 0.00 # starting our order off at $0
+        
+        
+    def set_id(self):
+        return str(uuid.uuid4())
+        
+        
+    # method to increase our order total
+    def increment_ordertotal(self, price):
+        
+        self.order_total = float(self.order_total)
+        self.order_total += float(price)
+        
+        return self.order_total 
+    
+    
+    # method to decrement the order total for when people update or delete their order 
+    def decrement_ordertotal(self, price):
+        
+        self.order_total = float(self.order_total)
+        self.order_total -= float(price)
+        
+        return self.order_total
+    
+
+    def __repr__(self):
+        return f"Order: {self.order_id}>"
+    
+    
+    
+# example of a join table
+# because an Order can have many Products but a Product can be a part of many Orders (many-to-many) relationship
+    
+    
+class ProdOrder(db.Model):
+    # CREATE TABLE
+    prodorder_id = db.Column(db.String, primary_key=True)
+    # first instance of using a foreign key that is a primary key on another table
+    prod_id = db.Column(db.String, db.ForeignKey('product.prod_id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Numeric(precision=10, scale=2), nullable=False)
+    order_id = db.Column(db.String, db.ForeignKey('order.order_id'), nullable=False)
+    cust_id = db.Column(db.String, db.ForeignKey('customer.cust_id'), nullable=False)
+    
+    
+    # INSERT INTO
+    def __init__(self, prod_id, quantity, price, order_id, cust_id):
+        self.prodorder_id = self.set_id()
+        self.prod_id = prod_id
+        self.quantity = quantity # how much quantity of that product the customer is buying
+        self.price = self.set_price(quantity, price) # total price of that quantity of product
+        self.order_id = order_id
+        self.cust_id = cust_id
+        
+    def set_id(self):
+        return str(uuid.uuid4())
+    
+    
+    def set_price(self, quantity, price):
+        
+        quantity = int(quantity)
+        price = float(price)
+        
+        self.price = quantity * price
+        return self.price
+    
+    
+    def update_quantity(self, quantity):
+        
+        self.quantity = int(quantity)
+        return self.quantity
+    
+    
+    
+    
+    
+    
 
 
 # create our Schema classs (aka what are data will look like when we pass it to the frontend)

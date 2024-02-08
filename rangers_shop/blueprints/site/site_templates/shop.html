@@ -19,9 +19,9 @@
     </div>
     {% if current_user.is_authenticated %}
     <div class="row bg-dark p-3 shop-stats">
-        <div class="col d-flex justify-content-center">Total # of Customers: 0</div>
-        <div class="col d-flex justify-content-center">Total Sales : $0</div>
-        <div class="col d-flex justify-content-center">Total # of Products: 0</div>
+        <div class="col d-flex justify-content-center">Total # of Customers: {{ stats.customers }}</div>
+        <div class="col d-flex justify-content-center">Total Sales : $ {{ stats.sales }}</div>
+        <div class="col d-flex justify-content-center">Total # of Products: {{ stats.products }}</div>
     </div>
     {% for product in shop %}
     <div class="row mt-5 mb-5 justify-content-center">
